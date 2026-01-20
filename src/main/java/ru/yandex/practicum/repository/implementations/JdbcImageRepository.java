@@ -28,7 +28,6 @@ public class JdbcImageRepository implements ImageRepository {
                     CONTENT_TYPE = excluded.CONTENT_TYPE,
                     FILE_SIZE = excluded.FILE_SIZE,
                     FILE_DATA = excluded.FILE_DATA;
-                
                 """;
 
         Map<String, Object> params = Map.of(
@@ -46,7 +45,7 @@ public class JdbcImageRepository implements ImageRepository {
     public Optional<PostImage> getPostImageByPostId(Long postId) {
         //language=SQL
         String sqlQuery = """
-                SELECT POST_ID as postId, 
+                SELECT POST_ID as postId,
                        FILE_NAME as fileName,
                        CONTENT_TYPE as contentType,
                        FILE_SIZE as size,

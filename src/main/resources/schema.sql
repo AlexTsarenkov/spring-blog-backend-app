@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS posts
 (
     id             BIGINT PRIMARY KEY,
     title          VARCHAR(100) NOT NULL,
-    text           VARCHAR(250) NOT NULL,
+    text           TEXT NOT NULL,
     likes_count    INTEGER      NOT NULL
 );
 

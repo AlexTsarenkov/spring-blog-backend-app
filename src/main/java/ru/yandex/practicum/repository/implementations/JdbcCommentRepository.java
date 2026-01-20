@@ -63,11 +63,11 @@ public class JdbcCommentRepository implements CommentRepository {
     public Optional<Comment> getComment(Long postId, Long commentId) {
         //language=SQL
         String sqlQuery = """
-                SELECT ID, 
+                SELECT ID,
                     TEXT,
                     POST_ID as postId
                 FROM comments
-                WHERE post_id = :postId 
+                WHERE post_id = :postId
                 AND id = :commentId
                 """;
         Map<String, Object> params = Map.of("postId", postId, "commentId", commentId);

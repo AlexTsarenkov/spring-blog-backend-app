@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.yandex.practicum.model.Comment;
@@ -19,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 
 @Slf4j
-@Controller
+@RestController
 @RequestMapping("/posts")
 @AllArgsConstructor
 public class PostController {
@@ -38,8 +37,8 @@ public class PostController {
     @ResponseBody
     @CrossOrigin("http://localhost")
     public PostListDto getAllPosts(@RequestParam(name = "search") String search,
-                                @RequestParam(name = "pageNumber") int pageNumber,
-                                @RequestParam(name = "pageSize") int pageSize) {
+                                   @RequestParam(name = "pageNumber") int pageNumber,
+                                   @RequestParam(name = "pageSize") int pageSize) {
         return postService.getPosts(search, pageSize, pageNumber);
     }
 
@@ -74,6 +73,14 @@ public class PostController {
     @CrossOrigin("http://localhost")
     public List<Comment> getComments(@PathVariable(name = "postId") Long postId) {
         return commentService.getComments(postId);
+    }
+
+    @GetMapping(value = "/{postId}/comments/{commentId}")
+    @ResponseBody
+    @CrossOrigin("http://localhost")
+    public Comment getComments(@PathVariable(name = "postId") Long postId,
+                                     @PathVariable(name = "commentId") Long commentId) {
+        return commentService.getComment(postId, commentId);
     }
 
     @PostMapping(value = "/{postId}/comments")

@@ -3,7 +3,7 @@ package ru.yandex.practicum.service;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.exception.PostNotFoundException;
+import ru.yandex.practicum.exception.NotFoundException;
 import ru.yandex.practicum.model.Post;
 import ru.yandex.practicum.model.dto.PostListDto;
 import ru.yandex.practicum.repository.interfaces.CommentRepository;
@@ -52,7 +52,7 @@ public class PostService {
     }
 
     public Post getPost(Long id) {
-        Post post = postRepository.getPost(id).orElseThrow(() -> new PostNotFoundException("Post not found"));
+        Post post = postRepository.getPost(id).orElseThrow(() -> new NotFoundException("Post not found"));
         List<String> tags = tagRepository.getTagsForPost(id);
 
         post.setTags(tags);

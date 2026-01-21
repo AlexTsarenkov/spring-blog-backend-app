@@ -6,7 +6,7 @@ var/
 !**/src/test/**/target/
 
 ### Intellij ###
-.idea/
+../../java-middle/.idea/
 *.iml
 *.iws
 *.ipr

@@ -2,6 +2,7 @@ package ru.yandex.practicum.service;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.exception.NotFoundException;
 import ru.yandex.practicum.model.Comment;
 import ru.yandex.practicum.repository.interfaces.CommentRepository;
 import ru.yandex.practicum.utils.Utility;
@@ -36,6 +37,11 @@ public class CommentService {
                 .text(comment.getText())
                 .build();
         return commentRepository.updateComment(commentToUpdate);
+    }
+
+    public Comment getComment(Long postId, Long commentId) {
+        return commentRepository.getComment(postId, commentId)
+                .orElseThrow(() -> new NotFoundException("Comment not found"));
     }
 
     public void deleteComment(Long postId, Long commentId) {

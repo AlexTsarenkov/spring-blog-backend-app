@@ -73,7 +73,7 @@ public class JdbcCommentRepository implements CommentRepository {
         Map<String, Object> params = Map.of("postId", postId, "commentId", commentId);
 
         try {
-            return Optional.ofNullable(jdbcTemplate.queryForObject(sqlQuery, params, Comment.class));
+            return Optional.ofNullable(jdbcTemplate.queryForObject(sqlQuery, params, new BeanPropertyRowMapper<>(Comment.class)));
         } catch (DataAccessException e) {
             return Optional.empty();
         }

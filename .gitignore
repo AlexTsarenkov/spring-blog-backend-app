@@ -21,6 +21,12 @@ out/
 
 ### Gradle ###
 .gradle/
+!gradle/wrapper/gradle-wrapper.jar
+gradle/
+gradlew
+gradlew.bat
+settings.gradle.kts
+
 /build/
 
 ### Package Files ###

@@ -1,25 +1,24 @@
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-import ru.yandex.practicum.configuration.AppConfiguration;
+import ru.yandex.practicum.BackendAppApplication;
 import ru.yandex.practicum.configuration.DataSourceConfiguration;
-import ru.yandex.practicum.configuration.MultipartConfiguration;
-import ru.yandex.practicum.configuration.RestConfiguration;
+import ru.yandex.practicum.controller.PostController;
 import ru.yandex.practicum.model.Comment;
 import ru.yandex.practicum.model.Post;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
@@ -27,28 +26,19 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringJUnitConfig(classes = {
-        DataSourceConfiguration.class,
-        AppConfiguration.class,
-        RestConfiguration.class,
-        MultipartConfiguration.class,
-})
-@WebAppConfiguration
-@TestPropertySource(locations = "classpath:test-application.properties")
+@SpringBootTest(classes = BackendAppApplication.class)
+@AutoConfigureMockMvc
 public class PostControllerTest {
 
-    @Autowired
-    private WebApplicationContext wac;
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
+    @Autowired
     private MockMvc mockMvc;
 
     @BeforeEach
     void setup() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
         jdbcTemplate.execute("DELETE FROM posts");
     }
 
@@ -65,7 +55,7 @@ public class PostControllerTest {
                         VALUES (1, 'Test Post', 'Test Post Text', 0);
                 """);
 
-        mockMvc.perform(get("/posts?search=&pageNumber=1&pageSize=5"))
+        mockMvc.perform(get("/api/posts?search=&pageNumber=1&pageSize=5"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.posts", hasSize(1)))
@@ -84,7 +74,7 @@ public class PostControllerTest {
                         VALUES (2, 'Test Post 2', 'Test Post 2 Text', 0);
                 """);
 
-        mockMvc.perform(get("/posts?search=&pageNumber=1&pageSize=5"))
+        mockMvc.perform(get("/api/posts?search=&pageNumber=1&pageSize=5"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.posts", hasSize(2)))
@@ -104,14 +94,14 @@ public class PostControllerTest {
                         VALUES (2, 'This one good post', 'Test Post 2 Text', 0);
                 """);
 
-        mockMvc.perform(get("/posts?search=one&pageNumber=1&pageSize=5"))
+        mockMvc.perform(get("/api/posts?search=one&pageNumber=1&pageSize=5"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.posts", hasSize(2)))
                 .andExpect(jsonPath("$.posts[0].title").value("This one good post"))
                 .andExpect(jsonPath("$.posts[1].title").value("Another one post"));
 
-        mockMvc.perform(get("/posts?search=Another&pageNumber=1&pageSize=5"))
+        mockMvc.perform(get("/api/posts?search=Another&pageNumber=1&pageSize=5"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.posts", hasSize(1)))
@@ -129,22 +119,22 @@ public class PostControllerTest {
             namedParameterJdbcTemplate.update(sql, Map.of("id", i));
         }
 
-        mockMvc.perform(get("/posts?search=&pageNumber=1&pageSize=5"))
+        mockMvc.perform(get("/api/posts?search=&pageNumber=1&pageSize=5"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.posts", hasSize(5)));
 
-        mockMvc.perform(get("/posts?search=&pageNumber=2&pageSize=5"))
+        mockMvc.perform(get("/api/posts?search=&pageNumber=2&pageSize=5"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.posts", hasSize(5)));
 
-        mockMvc.perform(get("/posts?search=&pageNumber=1&pageSize=8"))
+        mockMvc.perform(get("/api/posts?search=&pageNumber=1&pageSize=8"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.posts", hasSize(8)));
 
-        mockMvc.perform(get("/posts?search=&pageNumber=2&pageSize=8"))
+        mockMvc.perform(get("/api/posts?search=&pageNumber=2&pageSize=8"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.posts", hasSize(2)));
@@ -157,7 +147,7 @@ public class PostControllerTest {
                         VALUES (1, 'Single Post', 'Test Post Text', 0);
                 """);
 
-        mockMvc.perform(get("/posts/1"))
+        mockMvc.perform(get("/api/posts/1"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.title").value("Single Post"))
@@ -176,7 +166,7 @@ public class PostControllerTest {
                           }
                 """;
 
-        mockMvc.perform(post("/posts")
+        mockMvc.perform(post("/api/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(postJsonBody))
                 .andExpect(status().isOk())
@@ -185,7 +175,7 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.text").value("Created Post text"))
                 .andExpect(jsonPath("$.likesCount").value(0));
 
-        mockMvc.perform(get("/posts?search=&pageNumber=1&pageSize=5"))
+        mockMvc.perform(get("/api/posts?search=&pageNumber=1&pageSize=5"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.posts", hasSize(1)))
@@ -208,7 +198,7 @@ public class PostControllerTest {
                             "likesCount": 2
                           }
                 """;
-        mockMvc.perform(put("/posts/1")
+        mockMvc.perform(put("/api/posts/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(putJsonBody))
                 .andExpect(status().isOk())
@@ -218,7 +208,7 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.text").value("Updated Post text"))
                 .andExpect(jsonPath("$.likesCount").value(2));
 
-        mockMvc.perform(get("/posts?search=&pageNumber=1&pageSize=5"))
+        mockMvc.perform(get("/api/posts?search=&pageNumber=1&pageSize=5"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.posts", hasSize(1)))
@@ -235,10 +225,10 @@ public class PostControllerTest {
                         VALUES (1, 'Single Post', 'Test Post Text', 2);
                 """);
 
-        mockMvc.perform(delete("/posts/1"))
+        mockMvc.perform(delete("/api/posts/1"))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(get("/posts?search=&pageNumber=1&pageSize=5"))
+        mockMvc.perform(get("/api/posts?search=&pageNumber=1&pageSize=5"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.posts", hasSize(0)));
@@ -254,7 +244,7 @@ public class PostControllerTest {
                           }
                 """;
 
-        MvcResult createResult = mockMvc.perform(post("/posts")
+        MvcResult createResult = mockMvc.perform(post("/api/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(postJsonBody))
                 .andExpect(status().isOk())
@@ -263,7 +253,7 @@ public class PostControllerTest {
         ObjectMapper mapper = new ObjectMapper();
         Post post = mapper.readValue(createResult.getResponse().getContentAsString(), Post.class);
 
-        MvcResult getResult = mockMvc.perform(get(String.format("/posts/%d", post.getId())))
+        MvcResult getResult = mockMvc.perform(get(String.format("/api/posts/%d", post.getId())))
                 .andExpect(status().isOk())
                 .andReturn();
         Post createdPost = mapper.readValue(getResult.getResponse().getContentAsString(), Post.class);
@@ -283,7 +273,7 @@ public class PostControllerTest {
                           }
                 """;
 
-        MvcResult createResult = mockMvc.perform(post("/posts")
+        MvcResult createResult = mockMvc.perform(post("/api/posts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(postJsonBody))
                 .andExpect(status().isOk())
@@ -302,12 +292,12 @@ public class PostControllerTest {
                           }
                 """, post.getId());
 
-        mockMvc.perform(put("/posts/" + post.getId())
+        mockMvc.perform(put("/api/posts/" + post.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(putJsonBody))
                 .andExpect(status().isOk());
 
-        MvcResult updatedPostResult = mockMvc.perform(get("/posts/" + post.getId()))
+        MvcResult updatedPostResult = mockMvc.perform(get("/api/posts/" + post.getId()))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -333,7 +323,7 @@ public class PostControllerTest {
                   }
                 """;
 
-        mockMvc.perform(post("/posts/1/comments")
+        mockMvc.perform(post("/api/posts/1/comments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(commentJson))
                 .andExpect(status().isOk())
@@ -364,17 +354,17 @@ public class PostControllerTest {
                 """;
 
 
-        mockMvc.perform(post("/posts/1/comments")
+        mockMvc.perform(post("/api/posts/1/comments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(commentJson1))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(post("/posts/1/comments")
+        mockMvc.perform(post("/api/posts/1/comments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(commentJson2))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(get("/posts/1/comments"))
+        mockMvc.perform(get("/api/posts/1/comments"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(2)));
@@ -394,7 +384,7 @@ public class PostControllerTest {
                   }
                 """;
 
-        MvcResult newComment = mockMvc.perform(post("/posts/1/comments")
+        MvcResult newComment = mockMvc.perform(post("/api/posts/1/comments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(commentJson1))
                 .andExpect(status().isOk())
@@ -412,14 +402,14 @@ public class PostControllerTest {
                   }
                 """, comment.getId());
 
-        mockMvc.perform(put("/posts/1/comments/" + comment.getId())
+        mockMvc.perform(put("/api/posts/1/comments/" + comment.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updatedCommentJson))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.text").value("Completely updated Post comment"));
 
-        mockMvc.perform(get("/posts/1/comments"))
+        mockMvc.perform(get("/api/posts/1/comments"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -440,7 +430,7 @@ public class PostControllerTest {
                   }
                 """;
 
-        MvcResult newComment = mockMvc.perform(post("/posts/1/comments")
+        MvcResult newComment = mockMvc.perform(post("/api/posts/1/comments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(commentJson1))
                 .andExpect(status().isOk())
@@ -450,7 +440,7 @@ public class PostControllerTest {
 
         Comment comment = mapper.readValue(newComment.getResponse().getContentAsString(), Comment.class);
 
-        mockMvc.perform(get("/posts/1/comments/" + comment.getId()))
+        mockMvc.perform(get("/api/posts/1/comments/" + comment.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.text").value("Post comment1"));
@@ -470,7 +460,7 @@ public class PostControllerTest {
                   }
                 """;
 
-        MvcResult newComment = mockMvc.perform(post("/posts/1/comments")
+        MvcResult newComment = mockMvc.perform(post("/api/posts/1/comments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(commentJson1))
                 .andExpect(status().isOk())
@@ -480,10 +470,10 @@ public class PostControllerTest {
 
         Comment comment = mapper.readValue(newComment.getResponse().getContentAsString(), Comment.class);
 
-        mockMvc.perform(delete("/posts/1/comments/" + comment.getId()))
+        mockMvc.perform(delete("/api/posts/1/comments/" + comment.getId()))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(get("/posts/1/comments"))
+        mockMvc.perform(get("/api/posts/1/comments"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(0)));
@@ -496,16 +486,16 @@ public class PostControllerTest {
                         VALUES (1, 'Single Post', 'Test Post Text', 2);
                 """);
 
-        mockMvc.perform(post("/posts/1/likes"))
+        mockMvc.perform(post("/api/posts/1/likes"))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(post("/posts/1/likes"))
+        mockMvc.perform(post("/api/posts/1/likes"))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(post("/posts/1/likes"))
+        mockMvc.perform(post("/api/posts/1/likes"))
                 .andExpect(status().isOk());
 
-        MvcResult likedPostResult = mockMvc.perform(get("/posts/1"))
+        MvcResult likedPostResult = mockMvc.perform(get("/api/posts/1"))
                 .andExpect(status().isOk())
                 .andReturn();
 
